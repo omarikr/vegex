@@ -56,7 +56,14 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setChats(data || []);
+      
+      // Type cast the model_type to ensure it matches our ModelType
+      const typedChats: Chat[] = (data || []).map(chat => ({
+        ...chat,
+        model_type: chat.model_type as ModelType
+      }));
+      
+      setChats(typedChats);
     } catch (error) {
       console.error('Error loading chats:', error);
     }
@@ -71,7 +78,14 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Type cast the role to ensure it matches our union type
+      const typedMessages: Message[] = (data || []).map(message => ({
+        ...message,
+        role: message.role as 'user' | 'assistant'
+      }));
+      
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error loading messages:', error);
     }

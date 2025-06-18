@@ -12,13 +12,19 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const hfToken = Deno.env.get('HUGGINGFACE_API_KEY');
+  if (!hfToken) {
+    return new Response(
+      JSON.stringify({
+        error: "Configuration error",
+        details: "HUGGINGFACE_API_KEY is not set. Please configure the API key in the Supabase function environment variables."
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
+  }
+
   try {
     const { prompt } = await req.json();
-    const hfToken = Deno.env.get('HUGGINGFACE_API_KEY');
-
-    if (!hfToken) {
-      throw new Error('Hugging Face API key not configured');
-    }
 
     console.log('Chat request:', prompt);
 
@@ -41,9 +47,9 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Hugging Face API error:', error);
-      throw new Error(`API request failed: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Hugging Face API error:', errorText);
+      throw new Error(`Hugging Face API request failed with status ${response.status}: ${errorText}`);
     }
 
     const result = await response.json();
@@ -69,7 +75,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in chat:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to generate response', details: error.message }),
+      JSON.stringify({ error: "Failed to generate response", details: error.message || "An unexpected error occurred." }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

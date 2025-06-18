@@ -195,22 +195,50 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
       // Save AI message to database
       await saveMessage(chatId, 'assistant', aiResponse);
       
-    } catch (error) {
+    } catch (error: any) { // Added :any to satisfy TypeScript for error properties
       console.error('Error getting AI response:', error);
+
+      let displayErrorMessage = 'Failed to get AI response. Please try again.';
+      let chatErrorMessage = 'Sorry, I encountered an error processing your request. Please try again.';
+
+      if (error.message) {
+        try {
+          const parsedError = JSON.parse(error.message);
+          if (parsedError.error && parsedError.details) {
+            displayErrorMessage = `Error: ${parsedError.error} - ${parsedError.details}`;
+            chatErrorMessage = `Error: ${parsedError.details}`;
+          } else if (parsedError.error) {
+            displayErrorMessage = `Error: ${parsedError.error}`;
+            chatErrorMessage = `Error: ${parsedError.error}`;
+          } else {
+            displayErrorMessage = error.message;
+            chatErrorMessage = error.message;
+          }
+        } catch (e) {
+          if (typeof error.message === 'string') {
+            displayErrorMessage = error.message;
+            chatErrorMessage = error.message;
+          }
+        }
+      } else if (error.details) {
+         displayErrorMessage = error.details;
+         chatErrorMessage = error.details;
+      }
+
       toast({
         title: 'Error',
-        description: 'Failed to get AI response. Please try again.',
+        description: displayErrorMessage,
         variant: 'destructive',
       });
       
       // Add error message
-      const errorMessage = {
+      const errorMessageObj = { // Renamed to avoid conflict with errorMessage variable if any
         id: `error-${Date.now()}`,
         role: 'assistant' as const,
-        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        content: chatErrorMessage,
         created_at: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMessageObj]);
     } finally {
       setLoading(false);
     }

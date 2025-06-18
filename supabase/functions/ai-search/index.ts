@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,54 +13,47 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
-    const hfToken = Deno.env.get('HUGGINGFACE_API_KEY');
+    const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
 
-    if (!hfToken) {
-      throw new Error('Hugging Face API key not configured');
+    if (!togetherApiKey) {
+      throw new Error('Together AI API key not configured');
     }
 
     console.log('Search request:', prompt);
 
-    // Use a model that can understand search queries and provide informative responses
-    const response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-large', {
+    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${hfToken}`,
+        'Authorization': `Bearer ${togetherApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: `Search query: ${prompt}\n\nBased on this search query, I'll provide you with comprehensive information:`,
-        parameters: {
-          max_new_tokens: 400,
-          temperature: 0.3,
-          top_p: 0.8,
-          do_sample: true,
-        },
+        model: "deepseek-ai/DeepSeek-V3",
+        messages: [
+          {
+            role: "system",
+            content: "You are Vegex Search, an intelligent search assistant. Provide comprehensive, well-researched information on any topic. Structure your responses with clear sections, key points, and relevant details. Focus on accuracy and depth of information."
+          },
+          {
+            role: "user",
+            content: `Search for information about: ${prompt}`
+          }
+        ],
+        max_tokens: 800,
+        temperature: 0.3,
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Hugging Face API error:', error);
+      console.error('Together AI API error:', error);
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const result = await response.json();
-    let searchResponse = '';
+    const searchResponse = result.choices[0]?.message?.content || `I found information related to "${prompt}" but encountered an issue. Please try again.`;
 
-    if (Array.isArray(result) && result[0]?.generated_text) {
-      searchResponse = result[0].generated_text;
-    } else {
-      // Fallback response with simulated search results
-      searchResponse = `I found information related to "${prompt}":\n\n` +
-        `Based on current knowledge, here are key points about ${prompt}:\n` +
-        `• This appears to be a search query about ${prompt}\n` +
-        `• I can provide general information and guidance on this topic\n` +
-        `• For the most current information, I recommend checking official sources\n\n` +
-        `Would you like me to elaborate on any specific aspect of ${prompt}?`;
-    }
-
-    console.log('Generated search response');
+    console.log('Generated search response with Together AI');
 
     return new Response(
       JSON.stringify({ response: searchResponse }),

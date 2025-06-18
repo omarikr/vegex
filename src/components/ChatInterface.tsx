@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ModelSelector, { ModelType } from './ModelSelector';
+import LoadingAnimation from './LoadingAnimation';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Plus, Sparkles } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -180,6 +180,9 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
     await saveMessage(chatId, 'user', content);
 
     try {
+      // Simulate longer loading time for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Get AI response
       const aiResponse = await callAIFunction(content, selectedModel);
       
@@ -237,18 +240,30 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b bg-background">
-        <div>
-          <h1 className="text-2xl font-bold">AI Assistant</h1>
-          <p className="text-sm text-muted-foreground">Welcome, {user.email}</p>
+      <div className="flex justify-between items-center p-6 border-b bg-white/80 backdrop-blur-sm shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Vegex AI
+            </h1>
+            <p className="text-sm text-gray-600">Welcome, {user.email}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={createNewChat}>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={createNewChat}
+            className="flex items-center gap-2 border-2 border-gray-200 hover:border-blue-300 rounded-xl px-4 py-2 transition-all duration-200"
+          >
+            <Plus className="w-4 h-4" />
             New Chat
           </Button>
-          <Button variant="ghost" size="icon" onClick={onSignOut}>
+          <Button variant="ghost" size="icon" onClick={onSignOut} className="rounded-xl">
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
@@ -262,21 +277,24 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
         <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-center p-8">
-              <div>
-                <h2 className="text-2xl font-semibold mb-2">
+              <div className="max-w-md">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {selectedModel === 'code' && 'Code Generator'}
                   {selectedModel === 'chat' && 'General Chat'}
                   {selectedModel === 'search' && 'Web Search'}
                 </h2>
-                <p className="text-muted-foreground mb-4">
-                  {selectedModel === 'code' && 'Generate clean, modern code for your projects'}
-                  {selectedModel === 'chat' && 'Have a conversation about anything'}
-                  {selectedModel === 'search' && 'Search for information and get detailed answers'}
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  {selectedModel === 'code' && 'Generate clean, modern code for your projects with best practices and detailed explanations.'}
+                  {selectedModel === 'chat' && 'Have engaging conversations about any topic with your intelligent AI assistant.'}
+                  {selectedModel === 'search' && 'Search for information and get comprehensive, well-researched answers on any topic.'}
                 </p>
               </div>
             </div>
           ) : (
-            <div>
+            <div className="max-w-6xl mx-auto w-full">
               {messages.map((message) => (
                 <ChatMessage
                   key={message.id}
@@ -285,6 +303,7 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
                   timestamp={message.created_at}
                 />
               ))}
+              {loading && <LoadingAnimation />}
               <div ref={messagesEndRef} />
             </div>
           )}

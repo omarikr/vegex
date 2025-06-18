@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,53 +13,47 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
-    const hfToken = Deno.env.get('HUGGINGFACE_API_KEY');
+    const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
 
-    if (!hfToken) {
-      throw new Error('Hugging Face API key not configured');
+    if (!togetherApiKey) {
+      throw new Error('Together AI API key not configured');
     }
 
     console.log('Code generation request:', prompt);
 
-    // Use CodeLlama for code generation
-    const response = await fetch('https://api-inference.huggingface.co/models/codellama/CodeLlama-7b-Instruct-hf', {
+    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${hfToken}`,
+        'Authorization': `Bearer ${togetherApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: `<s>[INST] You are an expert frontend developer. Generate clean, modern, and efficient code. Focus on best practices for HTML, CSS, JavaScript, and React. Here's the request: ${prompt} [/INST]`,
-        parameters: {
-          max_new_tokens: 1000,
-          temperature: 0.1,
-          top_p: 0.95,
-          do_sample: true,
-        },
+        model: "deepseek-ai/DeepSeek-V3",
+        messages: [
+          {
+            role: "system",
+            content: "You are Vegex Code, an expert frontend developer and code generator. Generate clean, modern, and efficient code. Focus on best practices for HTML, CSS, JavaScript, TypeScript, and React. Provide complete, working code examples with proper formatting and comments."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0.1,
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Hugging Face API error:', error);
+      console.error('Together AI API error:', error);
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const result = await response.json();
-    let generatedCode = '';
+    const generatedCode = result.choices[0]?.message?.content || 'Sorry, I could not generate code for your request. Please try again.';
 
-    if (Array.isArray(result) && result[0]?.generated_text) {
-      generatedCode = result[0].generated_text;
-      // Clean up the response to remove the instruction part
-      const instIndex = generatedCode.indexOf('[/INST]');
-      if (instIndex !== -1) {
-        generatedCode = generatedCode.substring(instIndex + 7).trim();
-      }
-    } else {
-      generatedCode = 'Sorry, I could not generate code for your request. Please try again.';
-    }
-
-    console.log('Generated code response');
+    console.log('Generated code response with Together AI');
 
     return new Response(
       JSON.stringify({ response: generatedCode }),

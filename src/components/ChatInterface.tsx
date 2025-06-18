@@ -242,7 +242,7 @@ const ChatInterface = ({ user, onSignOut }: ChatInterfaceProps) => {
       <div className="flex justify-between items-center p-4 border-b bg-background">
         <div>
           <h1 className="text-2xl font-bold">AI Assistant</h1>
-          <p className="text-sm text-muted-foreground">Welcome, {user.email}</p>
+          <p className="text-sm text-muted-foreground">Welcome, {user.email} From AI assistant to Vegex.ie</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={createNewChat}>

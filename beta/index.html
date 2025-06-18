@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vegex AI - Powerful AI Models at Your Fingertips</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+        }
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #6e8efb;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #6e8efb }
+        }
+        .prompt-counter {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header/Navigation -->
+    <header class="gradient-bg text-white shadow-lg">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-robot text-2xl"></i>
+                    <a href="#" class="text-xl font-bold">Vegex<span class="text-blue-200">.ie</span></a>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#" class="hover:text-blue-200 transition">Home</a>
+                    <a href="#" class="hover:text-blue-200 transition">Models</a>
+                    <a href="#" class="hover:text-blue-200 transition">Pricing</a>
+                    <a href="#" class="hover:text-blue-200 transition">Docs</a>
+                    <a href="#" class="hover:text-blue-200 transition">Contact</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="px-4 py-2 rounded-md bg-white text-indigo-600 font-medium hover:bg-gray-100 transition">
+                        Sign In
+                    </button>
+                    <button class="md:hidden text-xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20 px-4">
+        <div class="container mx-auto text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">Welcome to <span class="typewriter">Vegex AI</span></h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+                Access powerful AI models with 20 free prompts every 12 hours. Choose from our extensive model collection.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <button class="px-6 py-3 bg-white text-indigo-600 rounded-md font-bold hover:bg-gray-100 transition">
+                    Try Now
+                </button>
+                <button class="px-6 py-3 border-2 border-white text-white rounded-md font-bold hover:bg-white hover:text-indigo-600 transition">
+                    Learn More
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- Model Selection and Chat Interface -->
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Sidebar - Model Selection -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-6">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">AI Models</h2>
+                    <p class="text-sm text-gray-600 mb-4">Select any model to begin. 20 free prompts every 12 hours.</p>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Prompt Usage</span>
+                            <span id="prompts-used">0</span>/<span>20</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="progress-bar" class="bg-indigo-500 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Model Search -->
+                    <div class="relative mb-6">
+                        <input type="text" id="model-search" placeholder="Search models..." 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Model Categories -->
+                    <div class="mb-4">
+                        <button class="model-category active" data-category="all">All Models</button>
+                        <button class="model-category" data-category="popular">Popular</button>
+                        <button class="model-category" data-category="coding">Coding</button>
+                        <button class="model-category" data-category="creative">Creative</button>
+                    </div>
+                    
+                    <!-- Model List -->
+                    <div class="h-96 overflow-y-auto pr-2" id="model-list">
+                        <!-- Models will be populated here dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side - Chat Interface -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <!-- Chat Header -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 id="selected-model-name" class="font-bold">Select a model to begin</h3>
+                                <p class="text-xs opacity-80" id="model-info">Choose from our collection of advanced AI models</p>
+                            </div>
+                            <div class="prompt-counter px-3 py-1 rounded-full text-sm font-bold">
+                                <span id="remaining-prompts">20</span> prompts left
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Content -->
+                    <div class="p-4">
+                        <div id="chat-container" class="h-80 overflow-y-auto mb-4 border rounded-lg p-3 bg-gray-50">
+                            <div class="w-full text-center text-gray-500 my-10">
+                                <i class="fas fa-comments text-4xl mb-2"></i>
+                                <p>Your conversation with AI will appear here</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Input Area -->
+                        <div class="relative">
+                            <textarea id="prompt-input" rows="4" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Type your message here..."></textarea>
+                            <div class="flex justify-between items-center mt-2">
+                                <div class="text-xs text-gray-500">
+                                    Press <span class="font-mono bg-gray-100 px-1 rounded">Shift+Enter</span> for new line
+                                </div>
+                                <button id="send-button" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition flex items-center space-x-2 disabled:opacity-50" disabled>
+                                    <span>Send</span> 
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Model Details Card -->
+                <div id="model-details" class="hidden bg-white rounded-xl shadow-md p-6 mt-8">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800" id="detailed-model-name">Model Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-gray-600 mb-1"><strong>Provider:</strong> <span id="model-provider"></span></p>
+                            <p class="text-gray-600 mb-1"><strong>Parameters:</strong> <span id="model-parameters"></span></p>
+                            <p class="text-gray-600 mb-1"><strong>Type:</strong> <span id="model-type"></span></p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-1"><strong>Context:</strong> <span id="model-context"></span></p>
+                            <p class="text-gray-600 mb-1"><strong>Language:</strong> <span id="model-language"></span></p>
+                            <p class="text-gray-600 mb-1"><strong>Status:</strong> <span class="text-green-500 font-medium" id="model-status">Available</span></p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mt-4" id="model-description"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Featured Models Section -->
+        <section class="my-20">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Featured AI Models</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Featured Model 1 -->
+                <div class="model-card bg-white rounded-xl shadow-md overflow-hidden transition duration-300">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-xl text-indigo-600">Claude 3.5 Sonnet</h3>
+                                <p class="text-sm text-gray-500">Anthropic</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Balanced</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Advanced reasoning, knowledge, and coding capabilities in a balanced model.</p>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>132K context</span>
+                            <span>20B params</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3 border-t">
+                        <button class="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                            Select Model
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Featured Model 2 -->
+                <div class="model-card bg-white rounded-xl shadow-md overflow-hidden transition duration-300">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-xl text-indigo-600">GPT-4o Mini</h3>
+                                <p class="text-sm text-gray-500">OpenAI</p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Fast</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">A smaller, faster version of GPT-4 with excellent performance on most tasks.</p>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>128K context</span>
+                            <span>8B params</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3 border-t">
+                        <button class="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                            Select Model
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Featured Model 3 -->
+                <div class="model-card bg-white rounded-xl shadow-md overflow-hidden transition duration-300">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-xl text-indigo-600">Llama 3.1 8B</h3>
+                                <p class="text-sm text-gray-500">Meta</p>
+                            </div>
+                            <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Open</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">A powerful open-weight model fine-tuned for chat applications.</p>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>32K context</span>
+                            <span>8B params</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3 border-t">
+                        <button class="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                            Select Model
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-robot text-2xl"></i>
+                        <span class="text-xl font-bold">Vegex<span class="text-blue-300">.ie</span></span>
+                    </div>
+                    <p class="text-gray-400">
+                        Powerful AI models accessible to everyone. 20 free prompts every 12 hours.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Products</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Vegex Chat</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">API Access</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Enterprise</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Research</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Documentation</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Tutorials</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Models</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">About</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Careers</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2024 Vegex AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sample models data (would be larger in production)
+        const models = [
+            {
+                id: "openrouter:01-ai/yi-large",
+                name: "Yi Large",
+                provider: "01.AI",
+                description: "A powerful large language model from 01.AI",
+                parameters: "34B",
+                context: "128K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:aetherwiing/mn-starcannon-12b",
+                name: "MN-Starcannon (12B)",
+                provider: "Aetherwiing",
+                description: "A specialized model for creative writing and storytelling",
+                parameters: "12B",
+                context: "64K",
+                type: "Creative",
+                language: "English",
+                category: "creative"
+            },
+            {
+                id: "openrouter:agentica-org/deepcoder-14b-preview:free",
+                name: "DeepCoder (14B)",
+                provider: "Agentica",
+                description: "Specialized in code generation and understanding",
+                parameters: "14B",
+                context: "32K",
+                type: "Coding",
+                language: "Multilingual",
+                category: "coding"
+            },
+            {
+                id: "openrouter:anthropic/claude-3.5-sonnet",
+                name: "Claude 3.5 Sonnet",
+                provider: "Anthropic",
+                description: "Advanced reasoning and knowledge capabilities from Anthropic",
+                parameters: "20B",
+                context: "132K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:openai/gpt-4o-mini",
+                name: "GPT-4o Mini",
+                provider: "OpenAI",
+                description: "Smaller, faster version of GPT-4 with excellent performance",
+                parameters: "8B",
+                context: "128K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:meta-llama/llama-3.1-8b-instruct",
+                name: "Llama 3.1 (8B)",
+                provider: "Meta",
+                description: "Open-weight model fine-tuned for chat applications",
+                parameters: "8B",
+                context: "32K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:mistralai/mistral-7b-instruct",
+                name: "Mistral 7B",
+                provider: "Mistral AI",
+                description: "Efficient 7B parameter model with strong performance",
+                parameters: "7B",
+                context: "32K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:google/gemini-pro-1.5",
+                name: "Gemini Pro 1.5",
+                provider: "Google",
+                description: "Google's advanced multimodal model with 1.5M context",
+                parameters: "35B",
+                context: "1.5M",
+                type: "Multimodal",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:deepseek/deepseek-chat",
+                name: "DeepSeek Chat",
+                provider: "DeepSeek",
+                description: "Specialized in Chinese and English language tasks",
+                parameters: "67B",
+                context: "128K",
+                type: "General",
+                language: "Chinese, English",
+                category: "creative"
+            },
+            {
+                id: "openrouter:perplexity/llama-3.1-sonar-large-128k-online",
+                name: "Sonar Large",
+                provider: "Perplexity",
+                description: "Online model with real-time information retrieval",
+                parameters: "70B",
+                context: "128K",
+                type: "Search",
+                language: "Multilingual",
+                category: "popular"
+            }
+        ];
+
+        // DOM Elements
+        const modelList = document.getElementById('model-list');
+        const modelSearch = document.getElementById('model-search');
+        const modelCategories = document.querySelectorAll('.model-category');
+        const promptInput = document.getElementById('prompt-input');
+        const sendButton = document.getElementById('send-button');
+        const chatContainer = document.getElementById('chat-container');
+        const selectedModelName = document.getElementById('selected-model-name');
+        const modelInfo = document.getElementById('model-info');
+        const modelDetails = document.getElementById('model-details');
+        const promptsUsed = document.getElementById('prompts-used');
+        const remainingPrompts = document.getElementById('remaining-prompts');
+        const progressBar = document.getElementById('progress-bar');
+
+        // State
+        let selectedModel = null;
+        let promptsCount = 0;
+        const maxPrompts = 20;
+
+        // Initialize
+        function init() {
+            renderModels(models);
+            setupEventListeners();
+            loadPromptCount();
+        }
+
+        // Render models list
+        function renderModels(modelsToRender) {
+            modelList.innerHTML = '';
+            
+            if (modelsToRender.length === 0) {
+                modelList.innerHTML = '<div class="text-center text-gray-500 py-8">No models found matching your search</div>';
+                return;
+            }
+            
+            modelsToRender.forEach(model => {
+                const modelElement = document.createElement('div');
+                modelElement.className = 'p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition rounded-md';
+                modelElement.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-medium text-gray-800">${model.name}</h4>
+                        <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">${model.provider}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate mt-1">${model.description}</p>
+                `;
+                modelElement.dataset.modelId = model.id;
+                modelElement.addEventListener('click', () => selectModel(model));
+                modelList.appendChild(modelElement);
+            });
+        }
+
+        // Select a model
+        function selectModel(model) {
+            selectedModel = model;
+            selectedModelName.textContent = model.name;
+            modelInfo.textContent = `${model.provider} · ${model.parameters} parameters · ${model.context} context`;
+            
+            // Show model details
+            document.getElementById('detailed-model-name').textContent = model.name;
+            document.getElementById('model-provider').textContent = model.provider;
+            document.getElementById('model-parameters').textContent = model.parameters;
+            document.getElementById('model-type').textContent = model.type;
+            document.getElementById('model-context').textContent = model.context;
+            document.getElementById('model-language').textContent = model.language;
+            document.getElementById('model-description').textContent = model.description;
+            modelDetails.classList.remove('hidden');
+            
+            // Add welcome message
+            chatContainer.innerHTML = `
+                <div class="flex items-start mb-4">
+                    <div class="flex-shrink-0 bg-indigo-500 text-white rounded-full p-2 mr-3">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
+                        <p>Hello! I'm ${model.name}, ready to assist you. How can I help you today?</p>
+                    </div>
+                </div>
+            `;
+            
+            // Scroll to model details if mobile
+            if (window.innerWidth < 768) {
+                modelDetails.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Enable send button
+            sendButton.disabled = false;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Model search
+            modelSearch.addEventListener('input', () => {
+                const searchTerm = modelSearch.value.toLowerCase();
+                const filteredModels = models.filter(model => 
+                    model.name.toLowerCase().includes(searchTerm) || 
+                    model.provider.toLowerCase().includes(searchTerm) ||
+                    model.description.toLowerCase().includes(searchTerm)
+                );
+                renderModels(filteredModels);
+            });
+            
+            // Model category filters
+            modelCategories.forEach(category => {
+                category.addEventListener('click', () => {
+                    // Update active category
+                    modelCategories.forEach(c => c.classList.remove('active'));
+                    category.classList.add('active');
+                    
+                    const categoryName = category.dataset.category;
+                    if (categoryName === 'all') {
+                        renderModels(models);
+                    } else {
+                        const filteredModels = models.filter(model => model.category === categoryName);
+                        renderModels(filteredModels);
+                    }
+                });
+            });
+            
+            // Send prompt
+            sendButton.addEventListener('click', sendPrompt);
+            
+            // Handle Enter key
+            promptInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendPrompt();
+                }
+            });
+        }
+        
+        // Send prompt to AI
+        function sendPrompt() {
+            const prompt = promptInput.value.trim();
+            if (!prompt || !selectedModel) return;
+            
+            // Check prompt limit
+            if (promptsCount >= maxPrompts) {
+                alert(`You've reached your limit of ${maxPrompts} prompts. Please wait 12 hours for your quota to reset.`);
+                return;
+            }
+            
+            // Add user message to chat
+            addMessageToChat('user', prompt);
+            promptInput.value = '';
+            
+            // Show loading indicator
+            const loadingId = 'loading-' + Date.now();
+            addMessageToChat('ai', '<div class="flex space-x-2"><div class="dots-1"></div><div class="dots-2"></div><div class="dots-3"></div></div>', loadingId);
+            
+            // Scroll to bottom
+            scrollChatToBottom();
+            
+            // Call AI API
+            puter.ai.chat(prompt, { model: selectedModel.id })
+                .then(response => {
+                    // Replace loading message with response
+                    const aiMessage = document.querySelector(`[data-message-id="${loadingId}"]`);
+                    if (aiMessage) {
+                        aiMessage.innerHTML = response;
+                    }
+                    
+                    // Update prompt count
+                    promptsCount++;
+                    updatePromptCount();
+                    savePromptCount();
+                    
+                    // Scroll to bottom after response
+                    setTimeout(scrollChatToBottom, 100);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.querySelector(`[data-message-id="${loadingId}"]`).innerHTML = 
+                        `<div class="text-red-500">Error: ${error.message || 'Failed to get response from AI'}</div>`;
+                });
+        }
+        
+        // Add message to chat
+        function addMessageToChat(sender, content, messageId = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex items-start mb-4 ${sender === 'user' ? 'justify-end' : ''}`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="bg-indigo-600 text-white rounded-lg p-3 max-w-[80%]">
+                        <p>${content}</p>
+                    </div>
+                    <div class="flex-shrink-0 bg-gray-500 text-white rounded-full p-2 ml-3">
+                        <i class="fas fa-user"></i>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="flex-shrink-0 bg-indigo-500 text-white rounded-full p-2 mr-3">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
+                        ${content}
+                    </div>
+                `;
+                
+                if (messageId) {
+                    messageDiv.setAttribute('data-message-id', messageId);
+                }
+            }
+            
+            // If it's the first message, clear the placeholder
+            if (chatContainer.querySelector('.text-center')) {
+                chatContainer.innerHTML = '';
+            }
+            
+            chatContainer.appendChild(messageDiv);
+        }
+        
+        // Scroll chat to bottom
+        function scrollChatToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Update prompt count display
+        function updatePromptCount() {
+            promptsUsed.textContent = promptsCount;
+            remainingPrompts.textContent = maxPrompts - promptsCount;
+            progressBar.style.width = `${(promptsCount / maxPrompts) * 100}%`;
+            
+            // Change color if approaching limit
+            if (promptsCount >= maxPrompts * 0.8) {
+                progressBar.classList.add('bg-red-500');
+                progressBar.classList.remove('bg-indigo-500');
+            } else {
+                progressBar.classList.add('bg-indigo-500');
+                progressBar.classList.remove('bg-red-500');
+            }
+        }
+        
+        // Save prompt count to localStorage
+        function savePromptCount() {
+            const now = new Date();
+            const promptData = {
+                count: promptsCount,
+                timestamp: now.getTime()
+            };
+            localStorage.setItem('vegexPromptCount', JSON.stringify(promptData));
+        }
+        
+        // Load prompt count from localStorage
+        function loadPromptCount() {
+            const savedData = localStorage.getItem('vegexPromptCount');
+            if (savedData) {
+                const promptData = JSON.parse(savedData);
+                const twelveHours = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+                const now = new Date().getTime();
+                
+                // Reset if it's been more than 12 hours
+                if (now - promptData.timestamp > twelveHours) {
+                    promptsCount = 0;
+                    localStorage.removeItem('vegexPromptCount');
+                } else {
+                    promptsCount = promptData.count;
+                }
+                
+                updatePromptCount();
+            }
+        }
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vegex Chat - Powerful AI Chat Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+        }
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+            width: 0;
+            opacity: 0;
+        }
+        .chat-message pre {
+            background-color: #f5f5f5;
+            border-radius: 6px;
+            padding: 12px;
+            overflow-x: auto;
+            position: relative;
+            margin: 8px 0;
+        }
+        .chat-message pre code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .copy-btn {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .chat-message pre:hover .copy-btn {
+            opacity: 1;
+        }
+        .chat-message strong {
+            font-weight: 600;
+        }
+        .chat-message em {
+            font-style: italic;
+        }
+        .chat-message ul, .chat-message ol {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        .chat-message li {
+            margin-bottom: 4px;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #888;
+            margin-right: 4px;
+            animation: bounce 1.5s infinite;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        #chat-container {
+            scroll-behavior: smooth;
+        }
+        .model-selection {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        /* Markdown-like styles */
+        .chat-message h1, .chat-message h2, .chat-message h3 {
+            font-weight: 600;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+        .chat-message h1 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
+        }
+        .chat-message h2 {
+            font-size: 1.25em;
+        }
+        .chat-message h3 {
+            font-size: 1.1em;
+        }
+        .chat-message blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 1em;
+            color: #666;
+            margin: 1em 0;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Container -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar w-64 bg-white border-r border-gray-200 overflow-y-auto flex flex-col">
+            <!-- Sidebar header -->
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-robot text-lg text-indigo-600"></i>
+                    <span class="font-bold">Vegex Chat</span>
+                </div>
+                <button id="new-chat-btn" class="p-1 rounded-md hover:bg-gray-100">
+                    <i class="fas fa-plus text-gray-500"></i>
+                </button>
+            </div>
+            
+            <!-- Chat history -->
+            <div class="flex-1 overflow-y-auto p-2" id="chat-history">
+                <div class="text-center text-gray-500 py-8">No chat history yet</div>
+            </div>
+            
+            <!-- Sidebar footer -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600"></i>
+                    </div>
+                    <span class="font-medium">User</span>
+                </div>
+                <button id="toggle-sidebar" class="w-full p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm flex items-center justify-between">
+                    <span>Collapse sidebar</span>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden">
+            <!-- Model selector (sticky top) -->
+            <div class="bg-white border-b border-gray-200 p-3 flex items-center justify-between">
+                <div id="current-model" class="flex items-center space-x-2">
+                    <span class="text-gray-500">Model:</span>
+                    <button id="model-selector" class="font-medium hover:bg-gray-100 px-3 py-1 rounded-md flex items-center space-x-2">
+                        <span>Claude 3.5 Sonnet</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="toggle-model-info" class="text-gray-500 hover:text-indigo-600">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                    
+                    <div class="prompt-counter flex items-center space-x-1 text-sm">
+                        <div class="w-24 bg-gray-200 rounded-full h-1.5">
+                            <div id="progress-bar" class="bg-indigo-500 h-1.5 rounded-full" style="width: 10%"></div>
+                        </div>
+                        <span id="remaining-prompts">20</span>/<span>20</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Model info panel (conditional) -->
+            <div id="model-info-panel" class="bg-gray-50 border-b border-gray-200 p-4 hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-lg" id="selected-model-name">Claude 3.5 Sonnet</h3>
+                        <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
+                            <div><span class="text-gray-500">Provider:</span> <span id="model-provider">Anthropic</span></div>
+                            <div><span class="text-gray-500">Type:</span> <span id="model-type">General</span></div>
+                            <div><span class="text-gray-500">Parameters:</span> <span id="model-parameters">20B</span></div>
+                            <div><span class="text-gray-500">Context:</span> <span id="model-context">132K</span></div>
+                            <div class="col-span-2"><span class="text-gray-500">Description:</span> <span id="model-description">Advanced reasoning and knowledge capabilities from Anthropic</span></div>
+                        </div>
+                    </div>
+                    <button id="close-model-info" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat container -->
+            <div id="chat-container" class="flex-1 overflow-y-auto p-4 bg-white">
+                <div class="w-full text-center text-gray-500 my-10">
+                    <i class="fas fa-comment-alt text-4xl mb-2"></i>
+                    <h3 class="text-xl font-medium mb-1">Vegex AI Chat</h3>
+                    <p class="max-w-md mx-auto">Start a conversation with the AI. Your chat history will appear here.</p>
+                    <button id="try-example" class="mt-4 text-indigo-600 hover:text-indigo-800">Try an example prompt →</button>
+                </div>
+            </div>
+            
+            <!-- Input area -->
+            <div class="bg-white border-t border-gray-200 p-4">
+                <!-- Model selection dropdown (hidden by default) -->
+                <div id="model-selection-dropdown" class="hidden absolute bottom-24 left-1/2 transform -translate-x-1/2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
+                    <div class="p-2 border-b border-gray-200 relative">
+                        <input type="text" id="model-search" placeholder="Search models..." class="w-full p-2 border rounded-md pl-8">
+                        <i class="fas fa-search text-gray-400 absolute left-4 top-4"></i>
+                    </div>
+                    <div class="model-selection p-2" id="model-list">
+                        <!-- Models will be populated here -->
+                    </div>
+                    <div class="p-2 border-t border-gray-200 text-center text-sm text-gray-500">
+                        20 free prompts every 12 hours
+                    </div>
+                </div>
+                
+                <!-- Input controls -->
+                <div class="relative">
+                    <div class="flex items-center mb-2 space-x-2">
+                        <button id="image-gen-toggle" class="p-2 text-gray-500 hover:text-indigo-600 rounded-md hover:bg-gray-100" title="Generate Image">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <div id="image-prompt-container" class="hidden flex-1">
+                            <input type="text" id="image-prompt" placeholder="Describe the image you want to generate" class="w-full p-2 border rounded-md">
+                        </div>
+                    </div>
+                    
+                    <textarea id="prompt-input" rows="3" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-12" placeholder="Message..."></textarea>
+                    <button id="send-button" class="absolute right-3 bottom-4 p-1 text-gray-400 hover:text-indigo-600">
+                        <i class="fas fa-paper-plane text-lg"></i>
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-1 flex justify-between">
+                    <div>Press <span class="font-mono bg-gray-100 px-1 rounded">Shift+Enter</span> for new line</div>
+                    <div>AI can make mistakes. Consider checking important information.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample models data
+        const models = [
+            {
+                id: "openrouter:anthropic/claude-3.5-sonnet",
+                name: "Claude 3.5 Sonnet",
+                provider: "Anthropic",
+                description: "Advanced reasoning and knowledge capabilities from Anthropic",
+                parameters: "20B",
+                context: "132K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular",
+                default: true
+            },
+            {
+                id: "openrouter:openai/gpt-4o-mini",
+                name: "GPT-4o Mini",
+                provider: "OpenAI",
+                description: "Smaller, faster version of GPT-4 with excellent performance",
+                parameters: "8B",
+                context: "128K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:meta-llama/llama-3.1-8b-instruct",
+                name: "Llama 3.1 (8B)",
+                provider: "Meta",
+                description: "Open-weight model fine-tuned for chat applications",
+                parameters: "8B",
+                context: "32K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:mistralai/mistral-7b-instruct",
+                name: "Mistral 7B",
+                provider: "Mistral AI",
+                description: "Efficient 7B parameter model with strong performance",
+                parameters: "7B",
+                context: "32K",
+                type: "General",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:google/gemini-pro-1.5",
+                name: "Gemini Pro 1.5",
+                provider: "Google",
+                description: "Google's advanced multimodal model with long context",
+                parameters: "35B",
+                context: "1M",
+                type: "Multimodal",
+                language: "Multilingual",
+                category: "popular"
+            },
+            {
+                id: "openrouter:deepseek/deepseek-chat",
+                name: "DeepSeek Chat",
+                provider: "DeepSeek",
+                description: "Specialized in Chinese and English language tasks",
+                parameters: "67B",
+                context: "128K",
+                type: "General",
+                language: "Chinese, English",
+                category: "specialized"
+            },
+            {
+                id: "openrouter:stabilityai/stable-diffusion-xl",
+                name: "Stable Diffusion XL",
+                provider: "Stability AI",
+                description: "High-quality image generation model",
+                parameters: "2.6B",
+                context: "N/A",
+                type: "Image Generation",
+                language: "English",
+                category: "image"
+            }
+        ];
+
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const chatContainer = document.getElementById('chat-container');
+        const promptInput = document.getElementById('prompt-input');
+        const sendButton = document.getElementById('send-button');
+        const modelSelector = document.getElementById('model-selector');
+        const modelSelectionDropdown = document.getElementById('model-selection-dropdown');
+        const modelList = document.getElementById('model-list');
+        const modelSearch = document.getElementById('model-search');
+        const currentModelElement = document.getElementById('current-model');
+        const remainingPrompts = document.getElementById('remaining-prompts');
+        const progressBar = document.getElementById('progress-bar');
+        const modelInfoPanel = document.getElementById('model-info-panel');
+        const toggleModelInfo = document.getElementById('toggle-model-info');
+        const closeModelInfo = document.getElementById('close-model-info');
+        const imageGenToggle = document.getElementById('image-gen-toggle');
+        const imagePromptContainer = document.getElementById('image-prompt-container');
+        const imagePromptInput = document.getElementById('image-prompt');
+        const tryExampleBtn = document.getElementById('try-example');
+        const newChatBtn = document.getElementById('new-chat-btn');
+
+        // State
+        let selectedModel = models.find(m => m.default) || models[0];
+        let promptsCount = 0;
+        const maxPrompts = 20;
+        let isImageGenerationMode = false;
+        let currentChatId = null;
+        let chats = [];
+
+        // Initialize
+        function init() {
+            renderModels(models);
+            updateModelDisplay();
+            loadPromptCount();
+            setupEventListeners();
+            loadChatHistory();
+            
+            // Set up a default chat
+            newChat();
+        }
+
+        // Render models list
+        function renderModels(modelsToRender) {
+            modelList.innerHTML = '';
+            
+            if (modelsToRender.length === 0) {
+                modelList.innerHTML = '<div class="text-center text-gray-500 py-8">No models found matching your search</div>';
+                return;
+            }
+            
+            modelsToRender.forEach(model => {
+                const modelElement = document.createElement('div');
+                modelElement.className = 'p-3 hover:bg-gray-100 cursor-pointer rounded-md flex items-center justify-between';
+                modelElement.innerHTML = `
+                    <div>
+                        <h4 class="font-medium text-gray-800">${model.name}</h4>
+                        <p class="text-xs text-gray-500">${model.provider}</p>
+                    </div>
+                    ${model.default ? '<span class="text-xs bg-indigo-500 text-white px-2 py-1 rounded">default</span>' : ''}
+                `;
+                modelElement.addEventListener('click', () => {
+                    selectModel(model);
+                    modelSelectionDropdown.classList.add('hidden');
+                });
+                modelList.appendChild(modelElement);
+            });
+        }
+
+        // Select a model
+        function selectModel(model) {
+            selectedModel = model;
+            updateModelDisplay();
+            
+            // Add system message about model change
+            addMessage('ai', `I'm now using ${model.name} (${model.provider}). How can I assist you?`);
+            
+            // Save to localStorage
+            localStorage.setItem('selectedModel', JSON.stringify(model));
+        }
+
+        // Update model display in UI
+        function updateModelDisplay() {
+            currentModelElement.innerHTML = `
+                <span class="text-gray-500">Model:</span>
+                <button id="model-selector" class="font-medium hover:bg-gray-100 px-3 py-1 rounded-md flex items-center space-x-2">
+                    <span>${selectedModel.name}</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+            `;
+            
+            // Update model info panel
+            document.getElementById('selected-model-name').textContent = selectedModel.name;
+            document.getElementById('model-provider').textContent = selectedModel.provider;
+            document.getElementById('model-type').textContent = selectedModel.type;
+            document.getElementById('model-parameters').textContent = selectedModel.parameters;
+            document.getElementById('model-context').textContent = selectedModel.context;
+            document.getElementById('model-description').textContent = selectedModel.description;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Toggle sidebar
+            toggleSidebar.addEventListener('click', () => {
+                sidebar.classList.toggle('sidebar-hidden');
+                toggleSidebar.innerHTML = sidebar.classList.contains('sidebar-hidden') ? 
+                    '<span>Expand sidebar</span><i class="fas fa-chevron-right"></i>' : 
+                    '<span>Collapse sidebar</span><i class="fas fa-chevron-left"></i>';
+            });
+
+            // Model selector
+            modelSelector.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modelSelectionDropdown.classList.toggle('hidden');
+            });
+
+            // Click outside to close model selector
+            document.addEventListener('click', (e) => {
+                if (!modelSelectionDropdown.contains(e.target) && e.target !== modelSelector) {
+                    modelSelectionDropdown.classList.add('hidden');
+                }
+            });
+
+            // Model search
+            modelSearch.addEventListener('input', () => {
+                const searchTerm = modelSearch.value.toLowerCase();
+                const filteredModels = models.filter(model => 
+                    model.name.toLowerCase().includes(searchTerm) ||
+                    model.provider.toLowerCase().includes(searchTerm)
+                );
+                renderModels(filteredModels);
+            });
+
+            // Send prompt
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Handle Enter key (send) and Shift+Enter (new line)
+            promptInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Toggle model info
+            toggleModelInfo.addEventListener('click', () => {
+                modelInfoPanel.classList.toggle('hidden');
+            });
+            
+            closeModelInfo.addEventListener('click', () => {
+                modelInfoPanel.classList.add('hidden');
+            });
+
+            // Toggle image generation mode
+            imageGenToggle.addEventListener('click', () => {
+                isImageGenerationMode = !isImageGenerationMode;
+                imagePromptContainer.classList.toggle('hidden');
+                
+                if (isImageGenerationMode) {
+                    imageGenToggle.classList.add('text-indigo-600');
+                    promptInput.placeholder = "Or type a regular message...";
+                } else {
+                    imageGenToggle.classList.remove('text-indigo-600');
+                    promptInput.placeholder = "Message...";
+                }
+            });
+
+            // Try example button
+            tryExampleBtn.addEventListener('click', () => {
+                const examplePrompts = [
+                    "Explain quantum computing to me like I'm five",
+                    "Write a Python script to download all images from a webpage",
+                    "Give me creative ideas for a 3-day trip to Barcelona",
+                    "Create a summary of the latest AI advancements in 2024",
+                    "Help me debug this React component..."
+                ];
+                
+                const randomPrompt = examplePrompts[Math.floor(Math.random() * examplePrompts.length)];
+                promptInput.value = randomPrompt;
+                promptInput.focus();
+            });
+
+            // New chat button
+            newChatBtn.addEventListener('click', newChat);
+        }
+
+        // Send message to AI
+        function sendMessage() {
+            let prompt = '';
+            
+            if (isImageGenerationMode && imagePromptInput.value.trim()) {
+                prompt = imagePromptInput.value.trim();
+                isImageGenerationMode = false;
+                imagePromptContainer.classList.add('hidden');
+                imagePromptInput.value = '';
+                imageGenToggle.classList.remove('text-indigo-600');
+            } else if (promptInput.value.trim()) {
+                prompt = promptInput.value.trim();
+            } else {
+                return;
+            }
+            
+            // Check prompt limit
+            if (promptsCount >= maxPrompts) {
+                alert(`You've reached your limit of ${maxPrompts} prompts. Please wait 12 hours for your quota to reset.`);
+                return;
+            }
+            
+            // Add user message to chat
+            if (isImageGenerationMode) {
+                addMessage('user', `[Image Generation] ${prompt}`);
+            } else {
+                addMessage('user', prompt);
+            }
+            
+            promptInput.value = '';
+            
+            // Show loading indicator
+            const loadingId = 'loading-' + Date.now();
+            addMessage('ai', '<div class="typing-indicator"><span></span><span></span><span></span></div>', loadingId);
+            
+            // Scroll to bottom
+            scrollChatToBottom();
+            
+            // Call API based on mode
+            if (isImageGenerationMode) {
+                // For image generation using Stable Diffusion
+                puter.ai.image(prompt, {
+                    model: models.find(m => m.type === 'Image Generation').id,
+                    negative_prompt: "",
+                    width: 1024,
+                    height: 1024
+                })
+                .then(response => {
+                    // Replace loading message with image
+                    const aiMessage = document.querySelector(`[data-message-id="${loadingId}"]`);
+                    if (aiMessage) {
+                        aiMessage.innerHTML = `
+                            <p>Here's the image based on your prompt:</p>
+                            <img src="${response}" class="mt-2 rounded-lg max-w-full h-auto" alt="Generated image">
+                            <p class="text-sm text-gray-500 mt-1">Image generated from prompt: "${prompt}"</p>
+                        `;
+                    }
+                    
+                    // Update prompt count
+                    promptsCount++;
+                    updatePromptCount();
+                    savePromptCount();
+                    
+                    saveCurrentChat();
+                    updateChatHistory();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.querySelector(`[data-message-id="${loadingId}"]`).innerHTML = 
+                        `<div class="text-red-500">Error: ${error.message || 'Failed to generate image'}</div>`;
+                });
+            } else {
+                // For regular text completion
+                puter.ai.chat(prompt, { model: selectedModel.id })
+                .then(response => {
+                    // Process response to add formatting for code, bold, etc.
+                    const formattedResponse = formatResponse(response);
+                    
+                    // Replace loading message with response
+                    const aiMessage = document.querySelector(`[data-message-id="${loadingId}"]`);
+                    if (aiMessage) {
+                        aiMessage.innerHTML = formattedResponse;
+                        
+                        // Add copy buttons to all code blocks
+                        aiMessage.querySelectorAll('pre').forEach(pre => {
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                            copyBtn.addEventListener('click', () => {
+                                const code = pre.querySelector('code')?.textContent || pre.textContent;
+                                navigator.clipboard.writeText(code);
+                                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                                }, 2000);
+                            });
+                            pre.appendChild(copyBtn);
+                        });
+                    }
+                    
+                    // Update prompt count
+                    promptsCount++;
+                    updatePromptCount();
+                    savePromptCount();
+                    
+                    saveCurrentChat();
+                    updateChatHistory();
+                    
+                    // Scroll to bottom after response
+                    setTimeout(scrollChatToBottom, 100);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.querySelector(`[data-message-id="${loadingId}"]`).innerHTML = 
+                        `<div class="text-red-500">Error: ${error.message || 'Failed to get response from AI'}</div>`;
+                });
+            }
+        }
+        
+        // Format response to handle markdown-like formatting
+        function formatResponse(text) {
+            // Convert bold (**text** or __text__)
+            let formatted = text.replace(/\*\*(.*?)\*\*|__(.*?)__/g, '<strong>$1$2</strong>');
+            
+            // Convert italic (*text* or _text_)
+            formatted = formatted.replace(/\*(.*?)\*|_(.*?)_/g, '<em>$1$2</em>');
+            
+            // Convert code blocks (```language\ncode\n```)
+            formatted = formatted.replace(/```(\w*)\n([\s\S]*?)\n```/g, function(match, lang, code) {
+                return `<pre><code class="language-${lang}">${code}</code></pre>`;
+            });
+            
+            // Convert inline code (`code`)
+            formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            // Convert headers (### Header)
+            formatted = formatted.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            formatted = formatted.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            
+            // Convert blockquotes (> quote)
+            formatted = formatted.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+            
+            // Convert unordered lists (* item)
+            formatted = formatted.replace(/^\* (.*$)/gm, '<li>$1</li>');
+            formatted = formatted.replace(/(<li>.*<\/li>)+/g, function(match) {
+                return `<ul>${match}</ul>`;
+            });
+            
+            // Convert ordered lists (1. item)
+            formatted = formatted.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
+            formatted = formatted.replace(/(<li>.*<\/li>)+/g, function(match) {
+                return `<ol>${match}</ol>`;
+            });
+            
+            return formatted;
+        }
+        
+        // Add message to chat
+        function addMessage(sender, content, messageId = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex items-start mb-6 ${sender === 'user' ? 'justify-end' : ''}`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="max-w-[90%]">
+                        <div class="bg-indigo-100 text-gray-800 rounded-lg p-4 inline-block">
+                            <div class="chat-message">${content}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center mr-3">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="flex-1 max-w-[90%]">
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <div class="chat-message">${content}</div>
+                        </div>
+                    </div>
+                `;
+                
+                if (messageId) {
+                    messageDiv.setAttribute('data-message-id', messageId);
+                }
+            }
+            
+            // If it's the first message, clear the placeholder
+            if (chatContainer.querySelector('.text-center')) {
+                chatContainer.innerHTML = '';
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            scrollChatToBottom();
+        }
+
+        // Scroll chat to bottom
+        function scrollChatToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Update prompt count display
+        function updatePromptCount() {
+            remainingPrompts.textContent = maxPrompts - promptsCount;
+            progressBar.style.width = `${(promptsCount / maxPrompts) * 100}%`;
+            
+            // Change color if approaching limit
+            if (promptsCount >= maxPrompts * 0.8) {
+                progressBar.classList.add('bg-red-500');
+                progressBar.classList.remove('bg-indigo-500');
+            } else {
+                progressBar.classList.add('bg-indigo-500');
+                progressBar.classList.remove('bg-red-500');
+            }
+        }
+
+        // Save prompt count to localStorage
+        function savePromptCount() {
+            const now = new Date();
+            const promptData = {
+                count: promptsCount,
+                timestamp: now.getTime()
+            };
+            localStorage.setItem('vegexPromptCount', JSON.stringify(promptData));
+        }
+
+        // Load prompt count from localStorage
+        function loadPromptCount() {
+            const savedData = localStorage.getItem('vegexPromptCount');
+            if (savedData) {
+                const promptData = JSON.parse(savedData);
+                const twelveHours = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+                const now = new Date().getTime();
+                
+                // Reset if it's been more than 12 hours
+                if (now - promptData.timestamp > twelveHours) {
+                    promptsCount = 0;
+                    localStorage.removeItem('vegexPromptCount');
+                } else {
+                    promptsCount = promptData.count;
+                }
+                
+                updatePromptCount();
+            }
+        }
+        
+        // Load chat history from localStorage
+        function loadChatHistory() {
+            const savedChats = localStorage.getItem('vegexChats');
+            if (savedChats) {
+                chats = JSON.parse(savedChats);
+            }
+            
+            // Load selected model from localStorage
+            const savedModel = localStorage.getItem('selectedModel');
+            if (savedModel) {
+                selectedModel = JSON.parse(savedModel);
+                updateModelDisplay();
+            }
+            
+            updateChatHistory();
+        }
+        
+        // Update chat history sidebar
+        function updateChatHistory() {
+            const chatHistoryElement = document.getElementById('chat-history');
+            
+            if (chats.length === 0) {
+                chatHistoryElement.innerHTML = '<div class="text-center text-gray-500 py-8">No chat history yet</div>';
+                return;
+            }
+            
+            chatHistoryElement.innerHTML = '';
+            
+            chats.forEach(chat => {
+                const chatElement = document.createElement('div');
+                chatElement.className = `p-3 rounded-md mb-1 cursor-pointer hover:bg-gray-100 ${currentChatId === chat.id ? 'bg-indigo-50' : ''}`;
+                chatElement.innerHTML = `
+                    <div class="font-medium truncate">${chat.title || 'New Chat'}</div>
+                    <div class="text-xs text-gray-500 truncate">${chat.messages[0]?.content?.substring(0, 30) || ''}...</div>
+                `;
+                chatElement.addEventListener('click', () => loadChat(chat.id));
+                chatHistoryElement.appendChild(chatElement);
+            });
+        }
+        
+        // Create a new chat
+        function newChat() {
+            currentChatId = Date.now().toString();
+            chats.unshift({
+                id: currentChatId,
+                title: 'New Chat',
+                model: selectedModel.id,
+                messages: []
+            });
+            
+            // Clear the chat container
+            chatContainer.innerHTML = `
+                <div class="w-full text-center text-gray-500 my-10">
+                    <i class="fas fa-comment-alt text-4xl mb-2"></i>
+                    <h3 class="text-xl font-medium mb-1">Vegex AI Chat</h3>
+                    <p class="max-w-md mx-auto">Start a conversation with the AI. Your chat history will appear here.</p>
+                    <button id="try-example" class="mt-4 text-indigo-600 hover:text-indigo-800">Try an example prompt →</button>
+                </div>
+            `;
+            
+            // Re-attach event listener
+            document.getElementById('try-example')?.addEventListener('click', () => {
+                const examplePrompts = [
+                    "Explain quantum computing to me like I'm five",
+                    "Write a Python script to download all images from a webpage",
+                    "Give me creative ideas for a 3-day trip to Barcelona",
+                    "Create a summary of the latest AI advancements in 2024",
+                    "Help me debug this React component..."
+                ];
+                
+                const randomPrompt = examplePrompts[Math.floor(Math.random() * examplePrompts.length)];
+                promptInput.value = randomPrompt;
+                promptInput.focus();
+            });
+            
+            saveChats();
+            updateChatHistory();
+        }
+        
+        // Load an existing chat
+        function loadChat(chatId) {
+            const chat = chats.find(c => c.id === chatId);
+            if (!chat) return;
+            
+            currentChatId = chatId;
+            
+            // Find and set the model
+            const model = models.find(m => m.id === chat.model) || selectedModel;
+            selectedModel = model;
+            updateModelDisplay();
+            
+            // Update the chat UI
+            chatContainer.innerHTML = '';
+            chat.messages.forEach(msg => {
+                addMessage(msg.sender, msg.content);
+            });
+            
+            updateChatHistory();
+        }
+        
+        // Save current chat
+        function saveCurrentChat() {
+            const chatIndex = chats.findIndex(c => c.id === currentChatId);
+            if (chatIndex === -1) return;
+            
+            const messages = Array.from(chatContainer.querySelectorAll('[data-message-id]'))
+                .map(element => {
+                    return {
+                        sender: element.querySelector('.fa-robot') ? 'ai' : 'user',
+                        content: element.querySelector('.chat-message').innerHTML
+                    };
+                });
+            
+            // Update chat title if this is the first message
+            if (messages.length >= 1 && chats[chatIndex].title === 'New Chat') {
+                chats[chatIndex].title = messages[0].content.substring(0, 30);
+            }
+            
+            chats[chatIndex].messages = messages;
+            chats[chatIndex].model = selectedModel.id;
+            
+            saveChats();
+        }
+        
+        // Save all chats to localStorage
+        function saveChats() {
+            localStorage.setItem('vegexChats', JSON.stringify(chats));
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

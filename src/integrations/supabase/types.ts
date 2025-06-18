@@ -13,7 +13,6 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          model_type: string
           title: string
           updated_at: string
           user_id: string
@@ -21,7 +20,6 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          model_type: string
           title?: string
           updated_at?: string
           user_id: string
@@ -29,8 +27,34 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          model_type?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_usage: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          prompt_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          prompt_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          prompt_count?: number
           updated_at?: string
           user_id?: string
         }
@@ -97,7 +121,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_daily_usage: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -29,7 +29,7 @@ const ChatInput = ({ onSendMessage, disabled, placeholder = "Type your message..
   };
 
   return (
-    <div className="border-t bg-gradient-to-r from-blue-50 to-purple-50 p-6">
+    <div className="border-t bg-white p-4">
       <form onSubmit={handleSubmit} className="flex gap-3 max-w-4xl mx-auto">
         <Textarea
           value={message}
@@ -37,18 +37,18 @@ const ChatInput = ({ onSendMessage, disabled, placeholder = "Type your message..
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="min-h-[60px] resize-none border-2 border-gray-200 focus:border-blue-400 rounded-xl shadow-sm transition-all duration-200"
+          className="min-h-[50px] resize-none border-gray-300 focus:border-blue-500 rounded-lg"
         />
         <Button 
           type="submit" 
           disabled={disabled || !message.trim()} 
           size="icon" 
-          className="h-[60px] w-[60px] rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg transition-all duration-200 transform hover:scale-105"
+          className="h-[50px] w-[50px] rounded-lg bg-blue-600 hover:bg-blue-700"
         >
           {disabled ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
           )}
         </Button>
       </form>

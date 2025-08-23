@@ -5,204 +5,335 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vegex AI - Prompt without limits</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vegex: {
+                            primary: '#6366f1',
+                            secondary: '#818cf8',
+                            dark: '#1e293b',
+                            light: '#f8fafc'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        /* Custom animation styles */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        .loading-dot {
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-        .loading-dot:nth-child(2) {
-            animation-delay: 0.3s;
-        }
-        .loading-dot:nth-child(3) {
-            animation-delay: 0.6s;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
         }
         
-        /* Smooth transitions */
-        .fade-in {
-            animation: fadeIn 0.8s ease-in forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1 0%, #818cf8 50%, #a5b4fc 100%);
         }
         
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .hero-pattern {
+            background-color: #f8fafc;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        ::-webkit-scrollbar-track {
-            background: #111;
+        
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
+        
+        .loading-bar {
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #818cf8, #a5b4fc);
+            animation: loading 1.5s ease-in-out infinite;
+            width: 100%;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #444;
+        
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #6366f1;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: .15em;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #6366f1; }
         }
     </style>
 </head>
-<body class="bg-black text-gray-200 min-h-screen flex flex-col overflow-x-hidden">
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center space-y-6 transition-opacity duration-500">
-        <div class="flex space-x-3">
-            <div class="loading-dot h-4 w-4 bg-purple-500 rounded-full"></div>
-            <div class="loading-dot h-4 w-4 bg-purple-500 rounded-full"></div>
-            <div class="loading-dot h-4 w-4 bg-purple-500 rounded-full"></div>
-        </div>
-        <p class="text-xl font-light text-gray-400">Initializing experience...</p>
-        <div class="w-64 h-1 bg-gray-800 rounded-full overflow-hidden mt-4">
-            <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" style="width: 0%"></div>
+<body class="bg-vegex-light">
+    <!-- Loading animation -->
+    <div id="loading" class="fixed top-0 left-0 w-full z-50">
+        <div class="loading-bar"></div>
+        <div class="bg-vegex-dark text-white text-center py-2">
+            <p class="text-sm font-medium">Initializing experience...</p>
         </div>
     </div>
 
-    <!-- Content (reveals after loading) -->
-    <main id="content" class="opacity-0 flex-1">
-        <!-- Navigation -->
-        <nav class="bg-gray-900 bg-opacity-80 backdrop-blur-md border-b border-gray-800 p-4 sticky top-0 z-40">
-            <div class="container mx-auto flex justify-between items-center">
-                <div class="text-2xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">Vegex AI</div>
-                <div class="hidden md:flex space-x-6">
-                    <a href="#" class="hover:text-purple-400 transition-colors">Home</a>
-                    <a href="https://chat.vegex.ie/" class="hover:text-blue-400 transition-colors">Chat</a>
-                    <a href="https://chat.vegex.ie/" class="hover:text-purple-400 transition-colors">Explore</a>
-                    <a href="https://discord.gg/vegex" class="hover:text-blue-400 transition-colors">Contact</a>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-vegex-primary font-bold text-xl">Vegex AI</span>
+                    </div>
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        <a href="#home" class="border-transparent text-gray-500 hover:border-vegex-primary hover:text-vegex-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+                        <a href="#chat" class="border-transparent text-gray-500 hover:border-vegex-primary hover:text-vegex-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Chat</a>
+                        <a href="#explore" class="border-transparent text-gray-500 hover:border-vegex-primary hover:text-vegex-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Explore</a>
+                        <a href="#contact" class="border-transparent text-gray-500 hover:border-vegex-primary hover:text-vegex-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Contact</a>
+                    </div>
                 </div>
-                <button class="md:hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+                <div class="flex items-center">
+                    <a href="#get-started" class="ml-4 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-vegex-primary hover:bg-vegex-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-vegex-primary">Get Started</a>
+                </div>
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <!-- Hero Section -->
-        <header class="relative">
-            <div class="absolute inset-0 bg-gradient-to-b from-black to-transparent z-10"></div>
-            <div class="absolute inset-0 bg-opacity-50 bg-black z-0"></div>
-            <div class="aspect-w-16 aspect-h-9">
-                <div class="w-full h-screen object-cover" style="background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop') center/cover;"></div>
-            </div>
-            
-            <div class="absolute inset-0 z-20 flex items-center">
-                <div class="container mx-auto px-4">
-                    <h1 class="text-4xl md:text-6xl font-bold mb-6 max-w-2xl fade-in" style="animation-delay: 0.3s;">
-                        <span class="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">Vegex AI</span> 
-
+    <!-- Hero Section -->
+    <section id="home" class="hero-pattern pt-24 pb-16 md:pt-32 md:pb-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
+                        <span class="block">Vegex AI</span>
+                        <span class="block text-vegex-primary mt-2">Prompt without limits</span>
                     </h1>
-                    <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl fade-in" style="animation-delay: 0.6s;">
+                    <p class="mt-4 text-xl text-gray-600">
                         Experience prompting without any limits with our new, no signup required AI chat that supports over 20 AI models
                     </p>
-                    <div class="flex space-x-4 fade-in" style="animation-delay: 0.9s;">
-                        <button class="px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                    <div class="mt-8 flex flex-col sm:flex-row sm:space-x-4">
+                        <a href="#get-started" class="px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-vegex-primary hover:bg-vegex-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-vegex-primary mb-3 sm:mb-0">
                             Get Started
-                        </button>
-                        <button class="px-8 py-3 border border-gray-600 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                        </a>
+                        <a href="#features" class="px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-vegex-primary bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-vegex-primary">
                             Learn More
-                        </button>
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-full max-w-md">
+                        <div class="floating">
+                            <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+                                <div class="flex items-center mb-4">
+                                    <div class="h-3 w-3 bg-red-400 rounded-full mr-2"></div>
+                                    <div class="h-3 w-3 bg-yellow-400 rounded-full mr-2"></div>
+                                    <div class="h-3 w-3 bg-green-400 rounded-full"></div>
+                                </div>
+                                <div class="bg-gray-100 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-700">User: Tell me about the capabilities of Vegex AI</p>
+                                    <div class="mt-2 typewriter text-sm text-gray-900">Vegex AI: I'm an advanced assistant with access to multiple AI models...</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-4 -left-4 w-24 h-24 bg-vegex-primary rounded-full opacity-10"></div>
+                        <div class="absolute -top-4 -right-4 w-16 h-16 bg-vegex-secondary rounded-full opacity-10"></div>
                     </div>
                 </div>
             </div>
-        </header>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900">Why Choose Vegex AI</h2>
+                <p class="mt-4 text-xl text-gray-600">Powerful features designed for seamless AI interaction</p>
+            </div>
+            <div class="mt-12 grid gap-8 md:grid-cols-3">
+                <div class="bg-vegex-light p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="w-12 h-12 rounded-full bg-vegex-primary bg-opacity-10 flex items-center justify-center mb-4">
+                        <i class="fas fa-bolt text-vegex-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">Multiple AI Models</h3>
+                    <p class="mt-2 text-gray-600">Access over 20 different AI models for various tasks and capabilities.</p>
+                </div>
+                <div class="bg-vegex-light p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="w-12 h-12 rounded-full bg-vegex-primary bg-opacity-10 flex items-center justify-center mb-4">
+                        <i class="fas fa-user-slash text-vegex-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">No Signup Required</h3>
+                    <p class="mt-2 text-gray-600">Start using our AI chat immediately without creating an account.</p>
+                </div>
+                <div class="bg-vegex-light p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="w-12 h-12 rounded-full bg-vegex-primary bg-opacity-10 flex items-center justify-center mb-4">
+                        <i class="fas fa-lock-open text-vegex-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">Prompt Without Limits</h3>
+                    <p class="mt-2 text-gray-600">No restrictions on what you can ask - explore the full potential of AI.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Models Section -->
+    <section class="py-16 gradient-bg text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold">Supported AI Models</h2>
+                <p class="mt-4 text-xl opacity-90">Choose from a diverse range of AI models for different tasks</p>
+            </div>
+            <div class="mt-12 model-grid">
+                <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm p-4 rounded-lg">
+                    <h3 class="font-semibold">GPT-4</h3>
+                    <p class="mt-2 text-sm opacity-80">Advanced language model for complex reasoning</p>
+                </div>
+                <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm p-4 rounded-lg">
+                    <h3 class="font-semibold">Claude</h3>
+                    <p class="mt-2 text-sm opacity-80">Helpful, honest, and harmless assistant</p>
+                </div>
+                <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm p-4 rounded-lg">
+                    <h3 class="font-semibold">PaLM</h3>
+                    <p class="mt-2 text-sm opacity-80">Google's pathway language model</p>
+                </div>
+                <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm p-4 rounded-lg">
+                    <h3 class="font-semibold">Jurassic</h3>
+                    <p class="mt-2 text-sm opacity-80">AI21 Studio's powerful language model</p>
+                </div>
+                <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm p-4 rounded-lg">
+                    <h3 class="font-semibold">Cohere</h3>
+                    <p class="mt-2 text-sm opacity-80">Language understanding and generation</p>
+                </div>
+                <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm p-4 rounded-lg">
+                    <h3 class="font-semibold">DALL-E</h3>
+                    <p class="mt-2 text-sm opacity-80">Create images from text descriptions</p>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p class="text-lg">...and more than 14 other specialized models</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="get-started" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900">Ready to Get Started?</h2>
+            <p class="mt-4 text-xl text-gray-600">Join thousands of users experiencing AI without limits</p>
+            <div class="mt-8">
+                <a href="#chat" class="px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-vegex-primary hover:bg-vegex-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-vegex-primary md:py-4 md:text-lg md:px-10">
+                    Start Chatting Now
+                </a>
+            </div>
+            <p class="mt-4 text-sm text-gray-500">No credit card required · No account needed</p>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 border-t border-gray-800 py-12 px-4">
-        <div class="container mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-2xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent mb-6 md:mb-0">Vegex.ie</div>
-                <div class="flex space-x-6">
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 0C5.373 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.11.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.085 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.553 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                        </svg>
-                    </a>
+    <footer class="bg-vegex-dark text-gray-300 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-1">
+                    <h3 class="text-white text-xl font-bold">Vegex AI</h3>
+                    <p class="mt-4 text-sm">Experience prompting without any limits with our new, no signup required AI chat.</p>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-twitter text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-discord text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-github text-lg"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-12">
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Product</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Download</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Status</a></li>
+                    <h4 class="text-white font-semibold">Product</h4>
+                    <ul class="mt-4 space-y-2">
+                        <li><a href="#" class="text-sm hover:text-white">Features</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Pricing</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Download</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Status</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Company</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">About</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Press</a></li>
+                    <h4 class="text-white font-semibold">Company</h4>
+                    <ul class="mt-4 space-y-2">
+                        <li><a href="#" class="text-sm hover:text-white">About</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Blog</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Careers</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Press</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Support</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Community</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Tutorials</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Feedback</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Legal</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Terms</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Cookies</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">License</a></li>
+                    <h4 class="text-white font-semibold">Support</h4>
+                    <ul class="mt-4 space-y-2">
+                        <li><a href="#" class="text-sm hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Community</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Tutorials</a></li>
+                        <li><a href="#" class="text-sm hover:text-white">Feedback</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500">
-                <p>© 2025 Vegex Inc. All rights reserved.</p>
+            <div class="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm">© 2025 Vegex Inc. All rights reserved.</p>
+                <div class="mt-4 md:mt-0 flex space-x-6">
+                    <a href="#" class="text-sm hover:text-white">Privacy</a>
+                    <a href="#" class="text-sm hover:text-white">Terms</a>
+                    <a href="#" class="text-sm hover:text-white">Cookies</a>
+                    <a href="#" class="text-sm hover:text-white">License</a>
+                </div>
             </div>
         </div>
     </footer>
 
     <script>
-        // Simulate loading progress
-        const loadingScreen = document.getElementById('loading-screen');
-        const progressBar = document.getElementById('progress-bar');
-        const mainContent = document.getElementById('content');
-        
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 100) progress = 100;
-            progressBar.style.width = `${progress}%`;
-            
-            if (progress === 100) {
-                clearInterval(interval);
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                    mainContent.classList.remove('opacity-0');
-                    mainContent.classList.add('fade-in');
-                    
-                    // Animate all sections with delay
-                    document.querySelectorAll('.fade-in').forEach((el, index) => {
-                        el.style.animationDelay = `${index * 0.2}s`;
+        // Hide loading animation after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.getElementById('loading').style.display = 'none';
+            }, 2000);
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
                     });
-                }, 500);
-            }
-        }, 200);
+                }
+            });
+        });
     </script>
 </body>
 </html>
